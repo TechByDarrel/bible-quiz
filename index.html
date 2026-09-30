@@ -15,51 +15,61 @@ h1{margin:0;font-size:clamp(34px,min(8vh,10vw),96px);letter-spacing:.06em;color:
 .rule i{display:block;height:3px;width:12vw;background:var(--gold);border-radius:2px}
 .rule b{width:14px;height:14px;background:var(--gold);transform:rotate(45deg)}
 #main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;min-height:0}
-#count{color:var(--dim);font-size:clamp(14px,2.4vh,26px);margin-bottom:1.5vh;font-family:Arial,sans-serif;min-height:3vh}
+#count{color:var(--dim);font-size:clamp(14px,2.6vh,28px);margin-bottom:1.5vh;font-family:Arial,sans-serif;min-height:3vh}
+#count b{color:#fff;padding:2px 12px;border-radius:999px;margin-right:8px}
 #q{font-size:clamp(22px,min(5.6vh,5.4vw),78px);line-height:1.3;max-width:1400px;font-weight:700}
 #opts{display:grid;grid-template-columns:1fr 1fr;gap:2vh 2.5vw;width:100%;max-width:1300px;margin-top:3.5vh}
 #opts:empty{display:none}
-.opt{display:flex;align-items:center;gap:14px;text-align:left;border:3px solid #d9dcec;border-radius:14px;padding:1.6vh 1.6vw;font-size:clamp(18px,min(4vh,4.4vw),54px);font-family:Arial,sans-serif;background:#fafbff}
+.opt{display:flex;align-items:center;gap:14px;text-align:left;border:3px solid #d9dcec;border-radius:14px;padding:1.6vh 1.6vw;font-size:clamp(18px,min(4vh,4.4vw),54px);font-family:Arial,sans-serif;background:#fafbff;cursor:pointer}
 .opt span{flex:none;width:1.7em;height:1.7em;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85em}
 .opt .mark{margin-left:auto;font-style:normal;font-weight:700;font-size:1.3em}
-.opt.good{background:#e3f6ea;border-color:var(--ok)}
-.opt.good span{background:var(--ok)} .opt.good .mark{color:var(--ok)}
-.opt.bad{background:#fde8e9;border-color:var(--no)}
-.opt.bad span{background:var(--no)} .opt.bad .mark{color:var(--no)}
+.opt.sel{border-color:var(--navy);box-shadow:0 0 0 4px rgba(35,42,92,.22)}
+.opt.good{background:#e3f6ea;border-color:var(--ok)} .opt.good span{background:var(--ok)} .opt.good .mark{color:var(--ok)}
+.opt.bad{background:#fde8e9;border-color:var(--no)} .opt.bad span{background:var(--no)} .opt.bad .mark{color:var(--no)}
 #result{font:700 clamp(20px,min(4.6vh,6vw),56px) Arial,sans-serif;margin-top:2.5vh;min-height:1.2em}
 #result.good{color:var(--ok)} #result.bad{color:var(--no)}
-@media (max-width:640px){#opts{grid-template-columns:1fr}}
 #timerWrap{position:absolute;right:3vw;top:2.5vh;width:min(13vh,22vw);height:min(13vh,22vw);visibility:hidden}
-#timerWrap.on{visibility:visible}
+#timerWrap.on{visibility:visible} #timerWrap.paused{opacity:.45}
 #timerWrap svg{width:100%;height:100%;transform:rotate(-90deg)}
 #timerWrap circle{fill:none;stroke-width:10}
 #ring{stroke:var(--navy);stroke-linecap:round;transition:stroke .3s}
 #sec{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:min(6vh,10vw);font-family:Arial,sans-serif;font-weight:700;color:var(--navy)}
 #timerWrap.low #ring{stroke:var(--no)} #timerWrap.low #sec{color:var(--no)}
-#overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(255,255,255,.93);z-index:5}
-#overlay.show{display:flex}
-#overlay svg{width:min(58vh,80vw);height:min(58vh,80vw);animation:pop .35s ease-out}
-@keyframes pop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
-#bar{background:#f1f2f8;padding:8px 10px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;align-items:center;font-family:Arial,sans-serif;position:relative;z-index:6}
+/* scoreboard */
+#board{position:fixed;inset:0;background:#fff;z-index:8;display:none;flex-direction:column;align-items:center;padding:3vh 4vw;overflow:auto;font-family:Arial,sans-serif;text-align:center;cursor:pointer}
+#board.show{display:flex}
+#board h2{margin:0 0 2vh;font:700 clamp(28px,6vh,64px) Georgia,serif;color:var(--navy);font-variant:small-caps;letter-spacing:.05em}
+.gs{display:flex;gap:2vw;flex-wrap:wrap;justify-content:center;margin-bottom:3vh}
+.gc{border:4px solid;border-radius:16px;padding:1.2vh 1.6vw;min-width:min(17vw,150px)}
+.gc b{display:block;color:#fff;border-radius:8px;padding:4px 8px;font-size:clamp(14px,2.6vh,28px)}
+.gc .pts{font-size:clamp(36px,9vh,100px);font-weight:700;color:var(--navy);line-height:1.1}
+.gc small{color:var(--dim);font-size:clamp(12px,2vh,22px)}
+.tiles{display:grid;grid-template-columns:repeat(6,1fr);gap:1.2vh 1.2vw;width:100%;max-width:1100px}
+.tile{border:3px solid #d9dcec;border-radius:12px;padding:1.2vh 4px;font-size:clamp(18px,4vh,44px);font-weight:700;color:var(--navy);background:#fafbff}
+.tile.on{color:#fff;border-color:transparent}
+.tile i{display:block;font-style:normal;font-size:.45em;font-weight:600;opacity:.95}
+#bar{background:#f1f2f8;padding:8px 10px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;align-items:center;font-family:Arial,sans-serif;position:relative;z-index:9}
 #bar.hide{display:none}
-#bar button{font:600 15px Arial,sans-serif;border:0;border-radius:8px;padding:11px 14px;background:var(--navy);color:#fff;cursor:pointer;touch-action:manipulation}
+#bar button{font:600 14px Arial,sans-serif;border:0;border-radius:8px;padding:10px 12px;background:var(--navy);color:#fff;cursor:pointer;touch-action:manipulation}
 #bar .ok{background:var(--ok)} #bar .no{background:var(--no)} #bar .g{background:#6b7194}
-#bar input{width:64px;font:16px Arial,sans-serif;padding:10px 6px;border:2px solid #c5c8dd;border-radius:8px;text-align:center}
-#bar small{color:var(--dim);flex-basis:100%;text-align:center;font-size:12px}
-#tog{position:fixed;right:8px;bottom:8px;width:34px;height:34px;border-radius:50%;border:0;background:rgba(35,42,92,.12);color:var(--navy);font-size:18px;z-index:7;cursor:pointer}
-#tog:hover{background:rgba(35,42,92,.3)}
+#bar .grp{min-width:44px;opacity:.55} #bar .grp.on{opacity:1;outline:3px solid #1f2540}
+#bar input{width:62px;font:16px Arial,sans-serif;padding:9px 4px;border:2px solid #c5c8dd;border-radius:8px;text-align:center}
+#bar .row{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;align-items:center;width:100%}
+#bar label{font-size:13px;color:var(--dim)}
+#status{color:#b34700;font-weight:600;font-size:13px;width:100%;text-align:center;min-height:16px}
+#bar small{color:var(--dim);width:100%;text-align:center;font-size:11px}
+#tog{position:fixed;right:8px;bottom:8px;width:34px;height:34px;border-radius:50%;border:0;background:rgba(35,42,92,.12);color:var(--navy);font-size:18px;z-index:10;cursor:pointer}
 @media (max-width:820px){
-#stage{padding:2vh 4vw 12vh}
+#stage{padding:2vh 4vw 14vh}
 #timerWrap{position:relative;right:auto;top:auto;width:76px;height:76px;margin:0 auto 12px;display:none;visibility:visible}
-#timerWrap.on{display:block}
-#sec{font-size:28px}
+#timerWrap.on{display:block} #sec{font-size:28px}
 #main{justify-content:flex-start}
-#opts{margin-top:2vh;gap:10px}
+#opts{margin-top:2vh;gap:10px;grid-template-columns:1fr}
 .opt{padding:12px 14px}
-#bar button{flex:1 1 30%;padding:12px 8px}
-#bar input{flex:1 1 20%}
+#bar button{flex:1 1 28%;padding:12px 6px}
+#bar .grp{flex:1 1 15%}
+.tiles{grid-template-columns:repeat(5,1fr)}
 }
-@media (prefers-reduced-motion:reduce){#overlay svg{animation:none}}
 </style>
 </head>
 <body>
@@ -77,58 +87,79 @@ h1{margin:0;font-size:clamp(34px,min(8vh,10vw),96px);letter-spacing:.06em;color:
     <div id="result"></div>
   </div>
 </div>
-<div id="overlay"></div>
+<div id="board"></div>
 <div id="bar">
-  <button class="g" id="bBack">Back (B)</button>
-  <button id="bNext">Next (N)</button>
-  <button id="bStart">Start timer (S)</button>
-  <button class="ok" id="bOk">&#10003; Correct (C)</button>
-  <button class="no" id="bNo">&#10007; Wrong (X)</button>
-  <input id="jn" type="number" inputmode="numeric" min="1" max="30" placeholder="Q#">
-  <button class="g" id="bGo">Go</button>
-  <button class="g" id="bFs">Fullscreen (F)</button>
-  <small>Keys: N next, S start, C correct, X wrong, B back, type a number to jump, H hide bar</small>
+  <div id="status"></div>
+  <div class="row" id="grps"><label>Group:</label></div>
+  <div class="row">
+    <button class="g" id="bBack">Back (B)</button>
+    <button id="bNext">Next (N)</button>
+    <button id="bStart">Start (S)</button>
+    <button class="g" id="bPause">Pause (P)</button>
+    <button class="ok" id="bOk">&#10003; Correct (C)</button>
+    <button class="no" id="bNo">&#10007; Wrong (X)</button>
+    <button class="g" id="bReveal">Reveal (R)</button>
+  </div>
+  <div class="row">
+    <input id="jn" type="number" inputmode="numeric" min="1" max="30" placeholder="Q#">
+    <button class="g" id="bGo">Pick Q#</button>
+    <button class="g" id="bUndo">Undo pick (U)</button>
+    <button class="g" id="bBoard">Scoreboard (T)</button>
+    <label>Seconds</label><input id="sn" type="number" inputmode="numeric" min="5" max="120">
+    <button class="g" id="bFs">Fullscreen (F)</button>
+    <button class="g" id="bReset">Reset scores</button>
+  </div>
+  <small>Shift+A to Shift+E choose group. Type a number then Enter to pick a question. Tap an option to mark the contestant's answer. + / - change seconds. H hides this bar.</small>
 </div>
 <button id="tog" title="Show or hide controls (H)">&#9881;</button>
 
 <script>
-// o = options A,B,C,D (audience sees only these, never the answers)
+// [question, [A,B,C,D], index of correct option]
 const Q=[
-{q:"Mention two books of the Bible named after women.",o:["Ruth and Esther","Mary and Martha","Sarah and Hannah","Deborah and Lydia"]},
-{q:"What four books tell about Jesus' life on Earth?",o:["Acts, Romans, James, Jude","Genesis, Exodus, Psalms, John","Luke, Acts, Mark, Hebrews","Matthew, Mark, Luke, John"]},
-{q:"What was the name of the man who climbed a tree to see Jesus?",o:["Nicodemus","Zacchaeus","Bartimaeus","Lazarus"]},
-{q:"Who did God permit Satan to torment?",o:["Job","Moses","Daniel","Jeremiah"]},
-{q:"Who led Israel into the Promised Land?",o:["Moses","Aaron","Caleb","Joshua"]},
-{q:"Who ate the holy temple's bread when he was hungry?",o:["Saul","David","Samuel","Solomon"]},
-{q:"Who cursed little children for calling him bald?",o:["Elijah","Elisha","Isaiah","Jonah"]},
-{q:"Who was the last Judge of Israel?",o:["Samson","Eli","Samuel","Gideon"]},
-{q:"Whose shadow healed sick people?",o:["Paul","Peter","John","Philip"]},
-{q:"Which apostle doubted Jesus' resurrection until he saw Him?",o:["Thomas","Peter","Andrew","Philip"]},
-{q:"Who baptized the Ethiopian eunuch?",o:["Peter","Paul","Philip","Barnabas"]},
-{q:"Who was taken from earth without dying, apart from Elijah?",o:["Moses","Enoch","Abraham","Noah"]},
-{q:"I was described as blameless and upright before I lost my wealth, children, and my health. Who am I?",o:["Abraham","Isaac","Job","Jacob"]},
-{q:"As I was being stoned, I saw the heavens open and Jesus standing at the right hand of God. Who am I?",o:["James","Stephen","Philip","Timothy"]},
-{q:"I used to persecute the early church until a bright light stopped me on the road to Damascus. Who am I?",o:["Barnabas","Silas","Saul (Paul)","Ananias"]},
-{q:"I famously said, \"Where you go I will go, and where you stay I will stay. Your people will be my people, and your God my God.\" Who am I?",o:["Orpah","Naomi","Esther","Ruth"]},
-{q:"Who saw a valley of dry bones?",o:["Ezekiel","Isaiah","Jeremiah","Daniel"]},
-{q:"How long was Lazarus dead before Jesus raised him up?",o:["Two days","Three days","Four days","Seven days"]},
-{q:"How many pieces of silver was Jesus betrayed for?",o:["Ten","Twenty","Thirty","Fifty"]},
-{q:"What was Paul's name before his conversion?",o:["Saul","Simon","Silas","Stephen"]},
-{q:"How many human beings in total were saved on Noah's Ark?",o:["Four","Six","Eight","Twelve"]},
-{q:"What was the name of the tower that the people were building when God confused their language?",o:["Tower of Siloam","Tower of Babel","Tower of Jericho","Tower of Nineveh"]},
-{q:"Who was the first child born?",o:["Abel","Seth","Cain","Enoch"]},
-{q:"What animal is Jesus likened to?",o:["Lion","Lamb","Eagle","Dove"]},
-{q:"The prodigal son was starving and was ready to eat the food meant for which animal?",o:["Goats","Sheep","Pigs","Donkeys"]},
-{q:"After Jesus was baptized in water, the Holy Spirit descended on Him in the form of a ____?",o:["Eagle","Dove","Flame","Cloud"]},
-{q:"What sign did God place in the clouds as an everlasting covenant and promise never to flood the entire earth again?",o:["A rainbow","A star","A pillar of fire","A dove"]},
-{q:"According to the creation account in Genesis, on which day did God create the sun, moon, and stars to govern the day and night?",o:["Second day","Third day","Fourth day","Fifth day"]},
-{q:"When Moses encountered God at the burning bush in the wilderness, what specific instruction did God give him before they spoke?",o:["Fall on your face","Remove your sandals","Cover your eyes","Put down your staff"]},
-{q:"When God originally called Jonah to go and preach to the city of Nineveh, to which distant port city did Jonah try to run away instead?",o:["Joppa","Tyre","Tarshish","Ephesus"]}
+["Mention two books of the Bible named after women.",["Ruth and Esther","Mary and Martha","Sarah and Hannah","Deborah and Lydia"],0],
+["What four books tell about Jesus' life on Earth?",["Acts, Romans, James, Jude","Genesis, Exodus, Psalms, John","Luke, Acts, Mark, Hebrews","Matthew, Mark, Luke, John"],3],
+["What was the name of the man who climbed a tree to see Jesus?",["Nicodemus","Zacchaeus","Bartimaeus","Lazarus"],1],
+["Who did God permit Satan to torment?",["Job","Moses","Daniel","Jeremiah"],0],
+["Who led Israel into the Promised Land?",["Moses","Aaron","Caleb","Joshua"],3],
+["Who ate the holy temple's bread when he was hungry?",["Saul","David","Samuel","Solomon"],1],
+["Who cursed little children for calling him bald?",["Elijah","Elisha","Isaiah","Jonah"],1],
+["Who was the last Judge of Israel?",["Samson","Eli","Samuel","Gideon"],2],
+["Whose shadow healed sick people?",["Paul","Peter","John","Philip"],1],
+["Which apostle doubted Jesus' resurrection until he saw Him?",["Thomas","Peter","Andrew","Philip"],0],
+["Who baptized the Ethiopian eunuch?",["Peter","Paul","Philip","Barnabas"],2],
+["Who was taken from earth without dying, apart from Elijah?",["Moses","Enoch","Abraham","Noah"],1],
+["I was described as blameless and upright before I lost my wealth, children, and my health. Who am I?",["Abraham","Isaac","Job","Jacob"],2],
+["As I was being stoned, I saw the heavens open and Jesus standing at the right hand of God. Who am I?",["James","Stephen","Philip","Timothy"],1],
+["I used to persecute the early church until a bright light stopped me on the road to Damascus. Who am I?",["Barnabas","Silas","Saul (Paul)","Ananias"],2],
+["I famously said, \"Where you go I will go, and where you stay I will stay. Your people will be my people, and your God my God.\" Who am I?",["Orpah","Naomi","Esther","Ruth"],3],
+["Who saw a valley of dry bones?",["Ezekiel","Isaiah","Jeremiah","Daniel"],0],
+["How long was Lazarus dead before Jesus raised him up?",["Two days","Three days","Four days","Seven days"],2],
+["How many pieces of silver was Jesus betrayed for?",["Ten","Twenty","Thirty","Fifty"],2],
+["What was Paul's name before his conversion?",["Saul","Simon","Silas","Stephen"],0],
+["How many human beings in total were saved on Noah's Ark?",["Four","Six","Eight","Twelve"],2],
+["What was the name of the tower that the people were building when God confused their language?",["Tower of Siloam","Tower of Babel","Tower of Jericho","Tower of Nineveh"],1],
+["Who was the first child born?",["Abel","Seth","Cain","Enoch"],2],
+["What animal is Jesus likened to?",["Lion","Lamb","Eagle","Dove"],1],
+["The prodigal son was starving and was ready to eat the food meant for which animal?",["Goats","Sheep","Pigs","Donkeys"],2],
+["After Jesus was baptized in water, the Holy Spirit descended on Him in the form of a ____?",["Eagle","Dove","Flame","Cloud"],1],
+["What sign did God place in the clouds as an everlasting covenant and promise never to flood the entire earth again?",["A rainbow","A star","A pillar of fire","A dove"],0],
+["According to the creation account in Genesis, on which day did God create the sun, moon, and stars to govern the day and night?",["Second day","Third day","Fourth day","Fifth day"],2],
+["When Moses encountered God at the burning bush in the wilderness, what specific instruction did God give him before they spoke?",["Fall on your face","Remove your sandals","Cover your eyes","Put down your staff"],1],
+["When God originally called Jonah to go and preach to the city of Nineveh, to which distant port city did Jonah try to run away instead?",["Joppa","Tyre","Tarshish","Ephesus"],2]
 ];
-const ANS=[0,3,1,0,3,1,1,2,1,0,2,1,2,1,2,3,0,2,2,0,2,1,2,1,2,1,0,2,1,2];
-const L=['A','B','C','D'],SECONDS=10,$=id=>document.getElementById(id);
-let idx=-1,left=SECONDS,timer=null,ac=null;
+const L=['A','B','C','D'],G=['A','B','C','D','E'],PER=6;
+const COL={A:'#2b6cb0',B:'#c05621',C:'#0f8b8d',D:'#805ad5',E:'#d53f8c'};
+const $=id=>document.getElementById(id);
 
+// Saved state: who picked which question, results, timer length, active group
+let S={own:Array(Q.length).fill(null),res:Array(Q.length).fill(null),sec:10,grp:'A'};
+try{const t=JSON.parse(localStorage.getItem('bq2'));if(t&&t.own&&t.own.length===Q.length)S=t}catch(e){}
+function save(){try{localStorage.setItem('bq2',JSON.stringify(S))}catch(e){}}
+
+let idx=-1,left=S.sec,timer=null,paused=false,pick=null,judged=false,ac=null;
+const inQ=()=>idx>=0&&idx<Q.length;
+
+// ---- Sounds (made in the browser, no files needed) ----
 function ctx(){if(!ac)ac=new (window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();return ac}
 function tone(f,t0,dur,type,vol){
   const a=ctx(),o=a.createOscillator(),g=a.createGain(),s=a.currentTime+t0;
@@ -144,85 +175,165 @@ const sounds={
   wrong(){tone(200,0,.35,'sawtooth',.4);tone(150,.3,.6,'sawtooth',.4)}
 };
 
+// ---- Timer ----
 function draw(){
   $('sec').textContent=left;
-  $('ring').style.strokeDashoffset=326.7*(1-left/SECONDS);
-  $('timerWrap').classList.toggle('low',left<=3&&(timer!==null||left===0));
+  $('ring').style.strokeDashoffset=326.7*(1-left/S.sec);
+  $('timerWrap').classList.toggle('low',left<=3&&(timer!==null||paused||left===0));
+  $('timerWrap').classList.toggle('paused',paused);
 }
-function stopTimer(){clearInterval(timer);timer=null}
-function hideOverlay(){$('overlay').classList.remove('show');$('overlay').innerHTML=''}
-function reset(){stopTimer();hideOverlay();$('result').textContent='';$('result').className='';left=SECONDS;draw();$('timerWrap').classList.remove('low')}
+function stopTimer(){clearInterval(timer);timer=null;paused=false}
+function tick(){left--;draw();if(left>0&&left<=3)sounds.tick();if(left<=0){stopTimer();draw();sounds.timeup()}}
+function clearMarks(){
+  document.querySelectorAll('.opt').forEach(el=>{el.classList.remove('good','bad','sel');el.querySelector('.mark').textContent=''});
+  $('result').textContent='';$('result').className='';pick=null;judged=false;
+}
+function startTimer(){
+  if(!inQ())return;
+  stopTimer();clearMarks();left=S.sec;draw();sounds.start();timer=setInterval(tick,1000);
+}
+function pauseTimer(){
+  if(timer!==null){clearInterval(timer);timer=null;paused=true;draw()}
+  else if(paused){paused=false;timer=setInterval(tick,1000);draw()}
+}
+function setSec(n){
+  n=Math.max(5,Math.min(120,n|0));S.sec=n;save();$('sn').value=n;
+  if(timer===null&&!paused){left=n;draw()}
+}
 
-function showQuestion(i){
-  idx=i;reset();
-  $('q').textContent=Q[i].q;
-  $('opts').innerHTML=Q[i].o.map((t,n)=>'<div class="opt"><span>'+L[n]+'</span>'+t+'<em class="mark"></em></div>').join('');
-  $('count').textContent='Question '+(i+1)+' of '+Q.length;
-  $('timerWrap').classList.add('on');
-  window.scrollTo(0,0);
+// ---- Questions and group picks ----
+function label(){
+  if(!inQ()){$('count').textContent='';return}
+  const o=S.own[idx];
+  $('count').innerHTML=(o?'<b style="background:'+COL[o]+'">Group '+o+'</b>':'')+'Question '+(idx+1)+' of '+Q.length;
+}
+function status(m){$('status').textContent=m||''}
+function show(i){
+  idx=i;stopTimer();
+  $('q').textContent=Q[i][0];
+  $('opts').innerHTML=Q[i][1].map((t,n)=>'<div class="opt" data-n="'+n+'"><span>'+L[n]+'</span>'+t+'<em class="mark"></em></div>').join('');
+  clearMarks();left=S.sec;draw();label();
+  $('timerWrap').classList.add('on');$('board').classList.remove('show');window.scrollTo(0,0);
 }
 function next(){
-  if(idx>=Q.length){return}
-  if(idx===Q.length-1){reset();idx=Q.length;$('q').textContent='End of quiz';$('opts').innerHTML='';$('count').textContent='';$('timerWrap').classList.remove('on');return}
-  showQuestion(idx+1);
+  if(idx>=Q.length)return;
+  if(idx===Q.length-1){stopTimer();idx=Q.length;$('q').textContent='End of quiz';$('opts').innerHTML='';$('result').textContent='';$('count').textContent='';$('timerWrap').classList.remove('on');return}
+  show(idx+1);
 }
-function back(){if(idx>0)showQuestion(Math.min(idx,Q.length)-1)}
-function startTimer(){
-  if(idx<0||idx>=Q.length)return;
-  stopTimer();hideOverlay();left=SECONDS;draw();sounds.start();
-  timer=setInterval(()=>{
-    left--;draw();
-    if(left>0&&left<=3)sounds.tick();
-    if(left<=0){stopTimer();draw();sounds.timeup()}
-  },1000);
+function back(){if(idx>0)show(Math.min(idx,Q.length)-1)}
+function goTo(n){
+  if(!(n>=1&&n<=Q.length))return;
+  const i=n-1,o=S.own[i];let msg='';
+  if(o===null){
+    if(S.own.filter(x=>x===S.grp).length>=PER)msg='Group '+S.grp+' already has '+PER+' questions. Not assigned.';
+    else{S.own[i]=S.grp;save();msg='Question '+n+' assigned to Group '+S.grp}
+  }else if(o!==S.grp)msg='Question '+n+' was already picked by Group '+o;
+  show(i);status(msg);renderBoard();
 }
-const CHECK='<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#1f9d57"/><path d="M27 52l16 16 30-34" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-const CROSS='<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#d93036"/><path d="M32 32l36 36M68 32L32 68" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round"/></svg>';
+function undo(){
+  if(!inQ()||S.own[idx]===null)return;
+  S.own[idx]=null;S.res[idx]=null;save();label();renderBoard();status('Pick removed for question '+(idx+1));
+}
+function setGroup(g){
+  S.grp=g;save();
+  document.querySelectorAll('.grp').forEach(b=>b.classList.toggle('on',b.dataset.g===g));
+  status('Active group: '+g+' ('+S.own.filter(x=>x===g).length+'/'+PER+' picked)');
+}
+
+// ---- Results shown on the options themselves ----
 function verdict(ok){
-  if(idx<0||idx>=Q.length)return;
-  stopTimer();
+  if(!inQ())return;
+  stopTimer();judged=true;
+  const ans=Q[idx][2];
   document.querySelectorAll('.opt').forEach((el,n)=>{
-    const good=n===ANS[idx];
-    el.classList.remove('good','bad');
-    el.classList.add(good?'good':'bad');
-    el.querySelector('.mark').textContent=good?'\u2713':'\u2717';
+    el.classList.remove('good','bad','sel');
+    let c='';
+    if(n===ans)c='good';
+    else if(pick===null||n===pick)c='bad';
+    if(c){el.classList.add(c);el.querySelector('.mark').textContent=c==='good'?'\u2713':'\u2717'}
   });
   $('result').textContent=ok?'\u2713 Correct!':'\u2717 Wrong!';
   $('result').className=ok?'good':'bad';
+  S.res[idx]=ok;save();renderBoard();
   (ok?sounds.correct:sounds.wrong)();
 }
+function reveal(){
+  if(!inQ())return;
+  stopTimer();judged=true;
+  document.querySelectorAll('.opt').forEach((el,n)=>{
+    el.classList.remove('good','bad','sel');el.querySelector('.mark').textContent='';
+    if(n===Q[idx][2]){el.classList.add('good');el.querySelector('.mark').textContent='\u2713'}
+  });
+}
+$('opts').addEventListener('click',e=>{
+  const el=e.target.closest('.opt');if(!el||judged)return;
+  ctx();pick=+el.dataset.n;
+  document.querySelectorAll('.opt').forEach(x=>x.classList.toggle('sel',x===el));
+});
+
+// ---- Scoreboard ----
+function renderBoard(){
+  let h='<h2>Scoreboard</h2><div class="gs">';
+  G.forEach(g=>{
+    let n=0,sc=0;
+    S.own.forEach((o,i)=>{if(o===g){n++;if(S.res[i]===true)sc++}});
+    h+='<div class="gc" style="border-color:'+COL[g]+'"><b style="background:'+COL[g]+'">Group '+g+'</b><div class="pts">'+sc+'</div><small>'+n+'/'+PER+' picked</small></div>';
+  });
+  h+='</div><div class="tiles">';
+  Q.forEach((_,i)=>{
+    const o=S.own[i],r=S.res[i];
+    h+='<div class="tile'+(o?' on':'')+'"'+(o?' style="background:'+COL[o]+'"':'')+'>'+(i+1)+(o?'<i>Group '+o+(r===true?' \u2713':r===false?' \u2717':'')+'</i>':'')+'</div>';
+  });
+  $('board').innerHTML=h+'</div>';
+}
+function toggleBoard(){renderBoard();$('board').classList.toggle('show')}
+
 function toggleBar(){$('bar').classList.toggle('hide')}
 function fs(){document.fullscreenElement?document.exitFullscreen():(document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen())}
-function goTo(n){if(n>=1&&n<=Q.length)showQuestion(n-1)}
+function resetAll(){
+  if(!confirm('Reset all group picks and scores?'))return;
+  S.own.fill(null);S.res.fill(null);save();renderBoard();if(inQ())label();status('All picks and scores cleared');
+}
 
-// Touch / click controls
+// ---- Buttons / touch ----
+G.forEach(g=>{
+  const b=document.createElement('button');b.className='grp';b.dataset.g=g;b.textContent=g;b.style.background=COL[g];
+  b.addEventListener('click',()=>{ctx();setGroup(g)});$('grps').appendChild(b);
+});
 const tap=(id,fn)=>$(id).addEventListener('click',()=>{ctx();fn()});
-tap('bBack',back);tap('bNext',next);tap('bStart',startTimer);
-tap('bOk',()=>verdict(true));tap('bNo',()=>verdict(false));
-tap('bFs',fs);tap('tog',toggleBar);
+tap('bBack',back);tap('bNext',next);tap('bStart',startTimer);tap('bPause',pauseTimer);
+tap('bOk',()=>verdict(true));tap('bNo',()=>verdict(false));tap('bReveal',reveal);
+tap('bUndo',undo);tap('bBoard',toggleBoard);tap('bFs',fs);tap('tog',toggleBar);tap('bReset',resetAll);
 tap('bGo',()=>{goTo(parseInt($('jn').value,10));$('jn').value=''});
 $('jn').addEventListener('keydown',e=>{if(e.key==='Enter'){ctx();goTo(parseInt($('jn').value,10));$('jn').value='';e.preventDefault()}});
-// tapping the overlay dismisses the check/X
-$('overlay').addEventListener('click',hideOverlay);
+$('sn').addEventListener('change',()=>setSec(parseInt($('sn').value,10)||10));
+$('board').addEventListener('click',()=>$('board').classList.remove('show'));
 
-// Keyboard
+// ---- Keyboard ----
 let numBuf='',numTimer=null;
 function jump(){clearTimeout(numTimer);const n=parseInt(numBuf,10);numBuf='';goTo(n)}
 document.addEventListener('keydown',e=>{
   if(e.target.tagName==='INPUT'||e.ctrlKey||e.metaKey||e.altKey)return;
   ctx();
+  if(e.shiftKey&&/^Key[A-E]$/.test(e.code)){setGroup(e.code[3]);return}
   const k=e.key.toLowerCase();
   if(/^[0-9]$/.test(k)){numBuf=(numBuf+k).slice(0,2);clearTimeout(numTimer);numTimer=setTimeout(jump,800);return}
   if(k==='enter'&&numBuf){jump();return}
   if(k==='n')next();
   else if(k==='s')startTimer();
+  else if(k==='p')pauseTimer();
   else if(k==='c')verdict(true);
   else if(k==='x')verdict(false);
+  else if(k==='r')reveal();
   else if(k==='b')back();
+  else if(k==='u')undo();
+  else if(k==='t')toggleBoard();
   else if(k==='h')toggleBar();
   else if(k==='f')fs();
+  else if(k==='+'||k==='=')setSec(S.sec+5);
+  else if(k==='-')setSec(S.sec-5);
 });
-draw();
+$('sn').value=S.sec;setGroup(S.grp);status('');draw();renderBoard();
 </script>
 </body>
 </html>
