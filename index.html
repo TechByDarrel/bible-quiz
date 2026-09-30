@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bible Quiz</title>
+<style>
+:root{--bg:#ffffff;--ink:#1f2540;--navy:#232a5c;--gold:#c9962b;--ok:#1f9d57;--no:#d93036;--dim:#7a7f99}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:Georgia,"Times New Roman",serif;display:flex;flex-direction:column;overflow:hidden}
+#stage{flex:1;display:flex;flex-direction:column;align-items:center;padding:3vh 6vw 2vh;text-align:center;position:relative;min-height:0}
+header{margin-bottom:2vh}
+h1{margin:0;font-size:clamp(40px,8vh,96px);letter-spacing:.06em;color:var(--navy);font-weight:700;font-variant:small-caps}
+.rule{display:flex;align-items:center;gap:14px;justify-content:center;margin-top:1vh}
+.rule i{display:block;height:3px;width:12vw;background:var(--gold);border-radius:2px}
+.rule b{width:14px;height:14px;background:var(--gold);transform:rotate(45deg)}
+#main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:0;width:100%}
+#count{color:var(--dim);font-size:2.6vh;margin-bottom:2vh;font-family:Arial,sans-serif;min-height:3vh}
+#q{font-size:clamp(28px,6.4vh,84px);line-height:1.3;max-width:1500px;font-weight:700;color:var(--ink)}
+#timerWrap{margin-top:4vh;width:20vh;height:20vh;position:relative;visibility:hidden}
+#timerWrap.on{visibility:visible}
+#timerWrap svg{width:100%;height:100%;transform:rotate(-90deg)}
+#timerWrap circle{fill:none;stroke-width:9}
+#ring{stroke:var(--navy);stroke-linecap:round;transition:stroke .3s}
+#sec{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:9vh;font-family:Arial,sans-serif;font-weight:700;color:var(--navy)}
+#timerWrap.low #ring{stroke:var(--no)} #timerWrap.low #sec{color:var(--no)}
+#overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(255,255,255,.93);z-index:5}
+#overlay.show{display:flex}
+#overlay svg{width:58vh;height:58vh;animation:pop .35s ease-out}
+@keyframes pop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+#hint{background:#f1f2f8;color:var(--dim);font:14px Arial,sans-serif;padding:8px 14px;text-align:center}
+#hint.hide{display:none}
+#hint b{color:var(--navy)}
+@media (prefers-reduced-motion:reduce){#overlay svg{animation:none}}
+</style>
+</head>
+<body>
+<div id="stage">
+  <header>
+    <h1>Bible Quiz</h1>
+    <div class="rule"><i></i><b></b><i></i></div>
+  </header>
+  <div id="main">
+    <div id="count"></div>
+    <div id="q">Press N to begin</div>
+    <div id="timerWrap">
+      <svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" stroke="#e3e5f0"/><circle id="ring" cx="60" cy="60" r="52" stroke-dasharray="326.7" stroke-dashoffset="0"/></svg>
+      <div id="sec">10</div>
+    </div>
+  </div>
+  <div id="overlay"></div>
+</div>
+<div id="hint"><b>N</b> next question &nbsp;|&nbsp; <b>S</b> start timer &nbsp;|&nbsp; <b>C</b> correct &nbsp;|&nbsp; <b>X</b> wrong &nbsp;|&nbsp; <b>B</b> back &nbsp;|&nbsp; <b>F</b> fullscreen &nbsp;|&nbsp; <b>H</b> hide this bar</div>
+
+<script>
+const QUESTIONS=[
+"Mention two books of the Bible named after women.",
+"What four books tell about Jesus' life on Earth?",
+"What was the name of the man who climbed a tree to see Jesus?",
+"Who did God permit Satan to torment?",
+"Who led Israel into the Promised Land?",
+"Who ate the holy temple's bread when he was hungry?",
+"Who cursed little children for calling him bald?",
+"Who was the last Judge of Israel?",
+"Whose shadow healed sick people?",
+"Which apostle doubted Jesus' resurrection until he saw Him?",
+"Who baptized the Ethiopian eunuch?",
+"Who was taken from earth without dying, apart from Elijah?",
+"I was described as blameless and upright before I lost my wealth, children, and my health. Who am I?",
+"As I was being stoned, I saw the heavens open and Jesus standing at the right hand of God. Who am I?",
+"I used to persecute the early church until a bright light stopped me on the road to Damascus. Who am I?",
+"I famously said, \"Where you go I will go, and where you stay I will stay. Your people will be my people, and your God my God.\" Who am I?",
+"Who saw a valley of dry bones?",
+"How long was Lazarus dead before Jesus raised him up?",
+"How many pieces of silver was Jesus betrayed for?",
+"What was Paul's name before his conversion?",
+"How many human beings in total were saved on Noah's Ark?",
+"What was the name of the tower that the people were building when God confused their language?",
+"Who was the first child born?",
+"What animal is Jesus likened to?",
+"The prodigal son was starving and was ready to eat the food meant for which animal?",
+"After Jesus was baptized in water, the Holy Spirit descended on Him in the form of a ____?",
+"What sign did God place in the clouds as an everlasting covenant and promise never to flood the entire earth again?",
+"According to the creation account in Genesis, on which day did God create the sun, moon, and stars to govern the day and night?",
+"When Moses encountered God at the burning bush in the wilderness, what specific instruction did God give him before they spoke?",
+"When God originally called Jonah to go and preach to the city of Nineveh, to which distant port city did Jonah try to run away instead?"
+];
+const SECONDS=10;
+const $=id=>document.getElementById(id);
+let idx=-1,left=SECONDS,timer=null,ac=null;
+
+// Sounds are generated in the browser: no files or internet needed
+function ctx(){if(!ac)ac=new (window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();return ac}
+function tone(f,t0,dur,type,vol){
+  const a=ctx(),o=a.createOscillator(),g=a.createGain(),s=a.currentTime+t0;
+  o.type=type;o.frequency.value=f;o.connect(g);g.connect(a.destination);
+  g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(vol,s+.02);g.gain.exponentialRampToValueAtTime(.001,s+dur);
+  o.start(s);o.stop(s+dur+.05);
+}
+const sounds={
+  tick(){tone(880,0,.12,'square',.15)},
+  start(){tone(660,0,.15,'triangle',.3);tone(990,.15,.2,'triangle',.3)},
+  timeup(){tone(140,0,.9,'sawtooth',.35)},
+  correct(){[523,659,784,1047].forEach((f,i)=>tone(f,i*.12,.35,'triangle',.35))},
+  wrong(){tone(200,0,.35,'sawtooth',.4);tone(150,.3,.6,'sawtooth',.4)}
+};
+
+function draw(){
+  $('sec').textContent=left;
+  $('ring').style.strokeDashoffset=326.7*(1-left/SECONDS);
+  $('timerWrap').classList.toggle('low',left<=3&&timer!==null||left===0);
+}
+function stopTimer(){clearInterval(timer);timer=null}
+function hideOverlay(){$('overlay').classList.remove('show');$('overlay').innerHTML=''}
+function reset(){stopTimer();hideOverlay();left=SECONDS;draw();$('timerWrap').classList.remove('low')}
+
+function showQuestion(i){
+  idx=i;reset();
+  $('q').textContent=QUESTIONS[idx];
+  $('count').textContent='Question '+(idx+1)+' of '+QUESTIONS.length;
+  $('timerWrap').classList.add('on');
+}
+function next(){
+  if(idx>=QUESTIONS.length-1){
+    reset();idx=QUESTIONS.length;$('q').textContent='End of quiz';$('count').textContent='';$('timerWrap').classList.remove('on');return;
+  }
+  showQuestion(idx+1);
+}
+function back(){if(idx>0&&idx<=QUESTIONS.length){showQuestion(Math.min(idx,QUESTIONS.length)-1)}}
+function startTimer(){
+  if(idx<0||idx>=QUESTIONS.length)return;
+  stopTimer();hideOverlay();left=SECONDS;draw();sounds.start();
+  timer=setInterval(()=>{
+    left--;draw();
+    if(left>0&&left<=3)sounds.tick();
+    if(left<=0){stopTimer();draw();sounds.timeup()}
+  },1000);
+}
+
+const CHECK='<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#1f9d57"/><path d="M27 52l16 16 30-34" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const CROSS='<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#d93036"/><path d="M32 32l36 36M68 32L32 68" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round"/></svg>';
+function verdict(ok){
+  if(idx<0||idx>=QUESTIONS.length)return;
+  stopTimer();
+  $('overlay').innerHTML=ok?CHECK:CROSS;$('overlay').classList.add('show');
+  (ok?sounds.correct:sounds.wrong)();
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.ctrlKey||e.metaKey||e.altKey)return;
+  ctx();
+  const k=e.key.toLowerCase();
+  if(k==='n')next();
+  else if(k==='s')startTimer();
+  else if(k==='c')verdict(true);
+  else if(k==='x')verdict(false);
+  else if(k==='b')back();
+  else if(k==='h')$('hint').classList.toggle('hide');
+  else if(k==='f'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()}
+});
+draw();
+</script>
+</body>
+</html>
