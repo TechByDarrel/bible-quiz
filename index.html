@@ -51,7 +51,7 @@ h1{margin:0;font-size:clamp(40px,8vh,96px);letter-spacing:.06em;color:var(--navy
   </div>
   <div id="overlay"></div>
 </div>
-<div id="hint"><b>N</b> next question &nbsp;|&nbsp; <b>S</b> start timer &nbsp;|&nbsp; <b>C</b> correct &nbsp;|&nbsp; <b>X</b> wrong &nbsp;|&nbsp; <b>B</b> back &nbsp;|&nbsp; <b>F</b> fullscreen &nbsp;|&nbsp; <b>H</b> hide this bar</div>
+<div id="hint"><b>N</b> next question &nbsp;|&nbsp; <b>S</b> start timer &nbsp;|&nbsp; <b>C</b> correct &nbsp;|&nbsp; <b>X</b> wrong &nbsp;|&nbsp; <b>B</b> back &nbsp;|&nbsp; <b>Type number</b> jump to question &nbsp;|&nbsp; <b>F</b> fullscreen &nbsp;|&nbsp; <b>H</b> hide this bar</div>
 
 <script>
 const QUESTIONS=[
@@ -147,10 +147,24 @@ function verdict(ok){
   (ok?sounds.correct:sounds.wrong)();
 }
 
+// Type a question number (e.g. 17 or 30) to jump straight to it
+let numBuf='',numTimer=null;
+function jump(){
+  clearTimeout(numTimer);
+  const n=parseInt(numBuf,10);numBuf='';
+  if(n>=1&&n<=QUESTIONS.length)showQuestion(n-1);
+}
 document.addEventListener('keydown',e=>{
   if(e.ctrlKey||e.metaKey||e.altKey)return;
   ctx();
   const k=e.key.toLowerCase();
+  if(/^[0-9]$/.test(k)){
+    numBuf=(numBuf+k).slice(0,2);
+    clearTimeout(numTimer);
+    numTimer=setTimeout(jump,800);
+    return;
+  }
+  if(k==='enter'&&numBuf){jump();return}
   if(k==='n')next();
   else if(k==='s')startTimer();
   else if(k==='c')verdict(true);
