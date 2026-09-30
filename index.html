@@ -5,92 +5,110 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Bible Quiz</title>
 <style>
-:root{--bg:#ffffff;--ink:#1f2540;--navy:#232a5c;--gold:#c9962b;--ok:#1f9d57;--no:#d93036;--dim:#7a7f99}
-*{box-sizing:border-box}
+:root{--bg:#fff;--ink:#1f2540;--navy:#232a5c;--gold:#c9962b;--ok:#1f9d57;--no:#d93036;--dim:#7a7f99}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;margin:0}
-body{background:var(--bg);color:var(--ink);font-family:Georgia,"Times New Roman",serif;display:flex;flex-direction:column;overflow:hidden}
-#stage{flex:1;display:flex;flex-direction:column;align-items:center;padding:3vh 6vw 2vh;text-align:center;position:relative;min-height:0}
-header{margin-bottom:2vh}
-h1{margin:0;font-size:clamp(40px,8vh,96px);letter-spacing:.06em;color:var(--navy);font-weight:700;font-variant:small-caps}
-.rule{display:flex;align-items:center;gap:14px;justify-content:center;margin-top:1vh}
+body{background:var(--bg);color:var(--ink);font-family:Georgia,"Times New Roman",serif;display:flex;flex-direction:column;overflow-x:hidden}
+#stage{flex:1;display:flex;flex-direction:column;align-items:center;padding:3vh 5vw 2vh;text-align:center;position:relative;min-height:0}
+h1{margin:0;font-size:clamp(34px,min(8vh,10vw),96px);letter-spacing:.06em;color:var(--navy);font-weight:700;font-variant:small-caps}
+.rule{display:flex;align-items:center;gap:14px;justify-content:center;margin:1vh 0 2vh}
 .rule i{display:block;height:3px;width:12vw;background:var(--gold);border-radius:2px}
 .rule b{width:14px;height:14px;background:var(--gold);transform:rotate(45deg)}
-#main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:0;width:100%}
-#count{color:var(--dim);font-size:2.6vh;margin-bottom:2vh;font-family:Arial,sans-serif;min-height:3vh}
-#q{font-size:clamp(28px,6.4vh,84px);line-height:1.3;max-width:1500px;font-weight:700;color:var(--ink)}
-#timerWrap{margin-top:4vh;width:20vh;height:20vh;position:relative;visibility:hidden}
+#main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;min-height:0}
+#count{color:var(--dim);font-size:clamp(14px,2.4vh,26px);margin-bottom:1.5vh;font-family:Arial,sans-serif;min-height:3vh}
+#q{font-size:clamp(22px,min(5.6vh,5.4vw),78px);line-height:1.3;max-width:1400px;font-weight:700}
+#opts{display:grid;grid-template-columns:1fr 1fr;gap:2vh 2.5vw;width:100%;max-width:1300px;margin-top:3.5vh}
+#opts:empty{display:none}
+.opt{display:flex;align-items:center;gap:14px;text-align:left;border:3px solid #d9dcec;border-radius:14px;padding:1.6vh 1.6vw;font-size:clamp(18px,min(4vh,4.4vw),54px);font-family:Arial,sans-serif;background:#fafbff}
+.opt span{flex:none;width:1.7em;height:1.7em;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85em}
+@media (max-width:640px){#opts{grid-template-columns:1fr}}
+#timerWrap{position:absolute;right:3vw;top:2.5vh;width:min(13vh,22vw);height:min(13vh,22vw);visibility:hidden}
 #timerWrap.on{visibility:visible}
 #timerWrap svg{width:100%;height:100%;transform:rotate(-90deg)}
-#timerWrap circle{fill:none;stroke-width:9}
+#timerWrap circle{fill:none;stroke-width:10}
 #ring{stroke:var(--navy);stroke-linecap:round;transition:stroke .3s}
-#sec{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:9vh;font-family:Arial,sans-serif;font-weight:700;color:var(--navy)}
+#sec{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:min(6vh,10vw);font-family:Arial,sans-serif;font-weight:700;color:var(--navy)}
 #timerWrap.low #ring{stroke:var(--no)} #timerWrap.low #sec{color:var(--no)}
-#overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(255,255,255,.93);z-index:5}
+#overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(255,255,255,.93);z-index:5}
 #overlay.show{display:flex}
-#overlay svg{width:58vh;height:58vh;animation:pop .35s ease-out}
+#overlay svg{width:min(58vh,80vw);height:min(58vh,80vw);animation:pop .35s ease-out}
 @keyframes pop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
-#hint{background:#f1f2f8;color:var(--dim);font:14px Arial,sans-serif;padding:8px 14px;text-align:center}
-#hint.hide{display:none}
-#hint b{color:var(--navy)}
+#bar{background:#f1f2f8;padding:8px 10px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;align-items:center;font-family:Arial,sans-serif;position:relative;z-index:6}
+#bar.hide{display:none}
+#bar button{font:600 15px Arial,sans-serif;border:0;border-radius:8px;padding:11px 14px;background:var(--navy);color:#fff;cursor:pointer;touch-action:manipulation}
+#bar .ok{background:var(--ok)} #bar .no{background:var(--no)} #bar .g{background:#6b7194}
+#bar input{width:64px;font:16px Arial,sans-serif;padding:10px 6px;border:2px solid #c5c8dd;border-radius:8px;text-align:center}
+#bar small{color:var(--dim);flex-basis:100%;text-align:center;font-size:12px}
+#tog{position:fixed;right:8px;bottom:8px;width:34px;height:34px;border-radius:50%;border:0;background:rgba(35,42,92,.12);color:var(--navy);font-size:18px;z-index:7;cursor:pointer}
+#tog:hover{background:rgba(35,42,92,.3)}
 @media (prefers-reduced-motion:reduce){#overlay svg{animation:none}}
 </style>
 </head>
 <body>
 <div id="stage">
-  <header>
-    <h1>Bible Quiz</h1>
-    <div class="rule"><i></i><b></b><i></i></div>
-  </header>
+  <h1>Bible Quiz</h1>
+  <div class="rule"><i></i><b></b><i></i></div>
+  <div id="timerWrap">
+    <svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" stroke="#e3e5f0"/><circle id="ring" cx="60" cy="60" r="52" stroke-dasharray="326.7" stroke-dashoffset="0"/></svg>
+    <div id="sec">10</div>
+  </div>
   <div id="main">
     <div id="count"></div>
     <div id="q"></div>
-    <div id="timerWrap">
-      <svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" stroke="#e3e5f0"/><circle id="ring" cx="60" cy="60" r="52" stroke-dasharray="326.7" stroke-dashoffset="0"/></svg>
-      <div id="sec">10</div>
-    </div>
+    <div id="opts"></div>
   </div>
-  <div id="overlay"></div>
 </div>
-<div id="hint"><b>N</b> next question &nbsp;|&nbsp; <b>S</b> start timer &nbsp;|&nbsp; <b>C</b> correct &nbsp;|&nbsp; <b>X</b> wrong &nbsp;|&nbsp; <b>B</b> back &nbsp;|&nbsp; <b>Type number</b> jump to question &nbsp;|&nbsp; <b>F</b> fullscreen &nbsp;|&nbsp; <b>H</b> hide this bar</div>
+<div id="overlay"></div>
+<div id="bar">
+  <button class="g" id="bBack">Back (B)</button>
+  <button id="bNext">Next (N)</button>
+  <button id="bStart">Start timer (S)</button>
+  <button class="ok" id="bOk">&#10003; Correct (C)</button>
+  <button class="no" id="bNo">&#10007; Wrong (X)</button>
+  <input id="jn" type="number" inputmode="numeric" min="1" max="30" placeholder="Q#">
+  <button class="g" id="bGo">Go</button>
+  <button class="g" id="bFs">Fullscreen (F)</button>
+  <small>Keys: N next, S start, C correct, X wrong, B back, type a number to jump, H hide bar</small>
+</div>
+<button id="tog" title="Show or hide controls (H)">&#9881;</button>
 
 <script>
-const QUESTIONS=[
-"Mention two books of the Bible named after women.",
-"What four books tell about Jesus' life on Earth?",
-"What was the name of the man who climbed a tree to see Jesus?",
-"Who did God permit Satan to torment?",
-"Who led Israel into the Promised Land?",
-"Who ate the holy temple's bread when he was hungry?",
-"Who cursed little children for calling him bald?",
-"Who was the last Judge of Israel?",
-"Whose shadow healed sick people?",
-"Which apostle doubted Jesus' resurrection until he saw Him?",
-"Who baptized the Ethiopian eunuch?",
-"Who was taken from earth without dying, apart from Elijah?",
-"I was described as blameless and upright before I lost my wealth, children, and my health. Who am I?",
-"As I was being stoned, I saw the heavens open and Jesus standing at the right hand of God. Who am I?",
-"I used to persecute the early church until a bright light stopped me on the road to Damascus. Who am I?",
-"I famously said, \"Where you go I will go, and where you stay I will stay. Your people will be my people, and your God my God.\" Who am I?",
-"Who saw a valley of dry bones?",
-"How long was Lazarus dead before Jesus raised him up?",
-"How many pieces of silver was Jesus betrayed for?",
-"What was Paul's name before his conversion?",
-"How many human beings in total were saved on Noah's Ark?",
-"What was the name of the tower that the people were building when God confused their language?",
-"Who was the first child born?",
-"What animal is Jesus likened to?",
-"The prodigal son was starving and was ready to eat the food meant for which animal?",
-"After Jesus was baptized in water, the Holy Spirit descended on Him in the form of a ____?",
-"What sign did God place in the clouds as an everlasting covenant and promise never to flood the entire earth again?",
-"According to the creation account in Genesis, on which day did God create the sun, moon, and stars to govern the day and night?",
-"When Moses encountered God at the burning bush in the wilderness, what specific instruction did God give him before they spoke?",
-"When God originally called Jonah to go and preach to the city of Nineveh, to which distant port city did Jonah try to run away instead?"
+// o = options A,B,C,D (audience sees only these, never the answers)
+const Q=[
+{q:"Mention two books of the Bible named after women.",o:["Ruth and Esther","Mary and Martha","Sarah and Hannah","Deborah and Lydia"]},
+{q:"What four books tell about Jesus' life on Earth?",o:["Acts, Romans, James, Jude","Genesis, Exodus, Psalms, John","Luke, Acts, Mark, Hebrews","Matthew, Mark, Luke, John"]},
+{q:"What was the name of the man who climbed a tree to see Jesus?",o:["Nicodemus","Zacchaeus","Bartimaeus","Lazarus"]},
+{q:"Who did God permit Satan to torment?",o:["Job","Moses","Daniel","Jeremiah"]},
+{q:"Who led Israel into the Promised Land?",o:["Moses","Aaron","Caleb","Joshua"]},
+{q:"Who ate the holy temple's bread when he was hungry?",o:["Saul","David","Samuel","Solomon"]},
+{q:"Who cursed little children for calling him bald?",o:["Elijah","Elisha","Isaiah","Jonah"]},
+{q:"Who was the last Judge of Israel?",o:["Samson","Eli","Samuel","Gideon"]},
+{q:"Whose shadow healed sick people?",o:["Paul","Peter","John","Philip"]},
+{q:"Which apostle doubted Jesus' resurrection until he saw Him?",o:["Thomas","Peter","Andrew","Philip"]},
+{q:"Who baptized the Ethiopian eunuch?",o:["Peter","Paul","Philip","Barnabas"]},
+{q:"Who was taken from earth without dying, apart from Elijah?",o:["Moses","Enoch","Abraham","Noah"]},
+{q:"I was described as blameless and upright before I lost my wealth, children, and my health. Who am I?",o:["Abraham","Isaac","Job","Jacob"]},
+{q:"As I was being stoned, I saw the heavens open and Jesus standing at the right hand of God. Who am I?",o:["James","Stephen","Philip","Timothy"]},
+{q:"I used to persecute the early church until a bright light stopped me on the road to Damascus. Who am I?",o:["Barnabas","Silas","Saul (Paul)","Ananias"]},
+{q:"I famously said, \"Where you go I will go, and where you stay I will stay. Your people will be my people, and your God my God.\" Who am I?",o:["Orpah","Naomi","Esther","Ruth"]},
+{q:"Who saw a valley of dry bones?",o:["Ezekiel","Isaiah","Jeremiah","Daniel"]},
+{q:"How long was Lazarus dead before Jesus raised him up?",o:["Two days","Three days","Four days","Seven days"]},
+{q:"How many pieces of silver was Jesus betrayed for?",o:["Ten","Twenty","Thirty","Fifty"]},
+{q:"What was Paul's name before his conversion?",o:["Saul","Simon","Silas","Stephen"]},
+{q:"How many human beings in total were saved on Noah's Ark?",o:["Four","Six","Eight","Twelve"]},
+{q:"What was the name of the tower that the people were building when God confused their language?",o:["Tower of Siloam","Tower of Babel","Tower of Jericho","Tower of Nineveh"]},
+{q:"Who was the first child born?",o:["Abel","Seth","Cain","Enoch"]},
+{q:"What animal is Jesus likened to?",o:["Lion","Lamb","Eagle","Dove"]},
+{q:"The prodigal son was starving and was ready to eat the food meant for which animal?",o:["Goats","Sheep","Pigs","Donkeys"]},
+{q:"After Jesus was baptized in water, the Holy Spirit descended on Him in the form of a ____?",o:["Eagle","Dove","Flame","Cloud"]},
+{q:"What sign did God place in the clouds as an everlasting covenant and promise never to flood the entire earth again?",o:["A rainbow","A star","A pillar of fire","A dove"]},
+{q:"According to the creation account in Genesis, on which day did God create the sun, moon, and stars to govern the day and night?",o:["Second day","Third day","Fourth day","Fifth day"]},
+{q:"When Moses encountered God at the burning bush in the wilderness, what specific instruction did God give him before they spoke?",o:["Fall on your face","Remove your sandals","Cover your eyes","Put down your staff"]},
+{q:"When God originally called Jonah to go and preach to the city of Nineveh, to which distant port city did Jonah try to run away instead?",o:["Joppa","Tyre","Tarshish","Ephesus"]}
 ];
-const SECONDS=10;
-const $=id=>document.getElementById(id);
+const L=['A','B','C','D'],SECONDS=10,$=id=>document.getElementById(id);
 let idx=-1,left=SECONDS,timer=null,ac=null;
 
-// Sounds are generated in the browser: no files or internet needed
 function ctx(){if(!ac)ac=new (window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();return ac}
 function tone(f,t0,dur,type,vol){
   const a=ctx(),o=a.createOscillator(),g=a.createGain(),s=a.currentTime+t0;
@@ -109,7 +127,7 @@ const sounds={
 function draw(){
   $('sec').textContent=left;
   $('ring').style.strokeDashoffset=326.7*(1-left/SECONDS);
-  $('timerWrap').classList.toggle('low',left<=3&&timer!==null||left===0);
+  $('timerWrap').classList.toggle('low',left<=3&&(timer!==null||left===0));
 }
 function stopTimer(){clearInterval(timer);timer=null}
 function hideOverlay(){$('overlay').classList.remove('show');$('overlay').innerHTML=''}
@@ -117,19 +135,20 @@ function reset(){stopTimer();hideOverlay();left=SECONDS;draw();$('timerWrap').cl
 
 function showQuestion(i){
   idx=i;reset();
-  $('q').textContent=QUESTIONS[idx];
-  $('count').textContent='Question '+(idx+1)+' of '+QUESTIONS.length;
+  $('q').textContent=Q[i].q;
+  $('opts').innerHTML=Q[i].o.map((t,n)=>'<div class="opt"><span>'+L[n]+'</span>'+t+'</div>').join('');
+  $('count').textContent='Question '+(i+1)+' of '+Q.length;
   $('timerWrap').classList.add('on');
+  window.scrollTo(0,0);
 }
 function next(){
-  if(idx>=QUESTIONS.length-1){
-    reset();idx=QUESTIONS.length;$('q').textContent='End of quiz';$('count').textContent='';$('timerWrap').classList.remove('on');return;
-  }
+  if(idx>=Q.length){return}
+  if(idx===Q.length-1){reset();idx=Q.length;$('q').textContent='End of quiz';$('opts').innerHTML='';$('count').textContent='';$('timerWrap').classList.remove('on');return}
   showQuestion(idx+1);
 }
-function back(){if(idx>0&&idx<=QUESTIONS.length){showQuestion(Math.min(idx,QUESTIONS.length)-1)}}
+function back(){if(idx>0)showQuestion(Math.min(idx,Q.length)-1)}
 function startTimer(){
-  if(idx<0||idx>=QUESTIONS.length)return;
+  if(idx<0||idx>=Q.length)return;
   stopTimer();hideOverlay();left=SECONDS;draw();sounds.start();
   timer=setInterval(()=>{
     left--;draw();
@@ -137,41 +156,44 @@ function startTimer(){
     if(left<=0){stopTimer();draw();sounds.timeup()}
   },1000);
 }
-
 const CHECK='<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#1f9d57"/><path d="M27 52l16 16 30-34" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const CROSS='<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#d93036"/><path d="M32 32l36 36M68 32L32 68" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round"/></svg>';
 function verdict(ok){
-  if(idx<0||idx>=QUESTIONS.length)return;
+  if(idx<0||idx>=Q.length)return;
   stopTimer();
   $('overlay').innerHTML=ok?CHECK:CROSS;$('overlay').classList.add('show');
   (ok?sounds.correct:sounds.wrong)();
 }
+function toggleBar(){$('bar').classList.toggle('hide')}
+function fs(){document.fullscreenElement?document.exitFullscreen():(document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen())}
+function goTo(n){if(n>=1&&n<=Q.length)showQuestion(n-1)}
 
-// Type a question number (e.g. 17 or 30) to jump straight to it
+// Touch / click controls
+const tap=(id,fn)=>$(id).addEventListener('click',()=>{ctx();fn()});
+tap('bBack',back);tap('bNext',next);tap('bStart',startTimer);
+tap('bOk',()=>verdict(true));tap('bNo',()=>verdict(false));
+tap('bFs',fs);tap('tog',toggleBar);
+tap('bGo',()=>{goTo(parseInt($('jn').value,10));$('jn').value=''});
+$('jn').addEventListener('keydown',e=>{if(e.key==='Enter'){ctx();goTo(parseInt($('jn').value,10));$('jn').value='';e.preventDefault()}});
+// tapping the overlay dismisses the check/X
+$('overlay').addEventListener('click',hideOverlay);
+
+// Keyboard
 let numBuf='',numTimer=null;
-function jump(){
-  clearTimeout(numTimer);
-  const n=parseInt(numBuf,10);numBuf='';
-  if(n>=1&&n<=QUESTIONS.length)showQuestion(n-1);
-}
+function jump(){clearTimeout(numTimer);const n=parseInt(numBuf,10);numBuf='';goTo(n)}
 document.addEventListener('keydown',e=>{
-  if(e.ctrlKey||e.metaKey||e.altKey)return;
+  if(e.target.tagName==='INPUT'||e.ctrlKey||e.metaKey||e.altKey)return;
   ctx();
   const k=e.key.toLowerCase();
-  if(/^[0-9]$/.test(k)){
-    numBuf=(numBuf+k).slice(0,2);
-    clearTimeout(numTimer);
-    numTimer=setTimeout(jump,800);
-    return;
-  }
+  if(/^[0-9]$/.test(k)){numBuf=(numBuf+k).slice(0,2);clearTimeout(numTimer);numTimer=setTimeout(jump,800);return}
   if(k==='enter'&&numBuf){jump();return}
   if(k==='n')next();
   else if(k==='s')startTimer();
   else if(k==='c')verdict(true);
   else if(k==='x')verdict(false);
   else if(k==='b')back();
-  else if(k==='h')$('hint').classList.toggle('hide');
-  else if(k==='f'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()}
+  else if(k==='h')toggleBar();
+  else if(k==='f')fs();
 });
 draw();
 </script>
