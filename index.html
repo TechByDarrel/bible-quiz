@@ -21,6 +21,13 @@ h1{margin:0;font-size:clamp(34px,min(8vh,10vw),96px);letter-spacing:.06em;color:
 #opts:empty{display:none}
 .opt{display:flex;align-items:center;gap:14px;text-align:left;border:3px solid #d9dcec;border-radius:14px;padding:1.6vh 1.6vw;font-size:clamp(18px,min(4vh,4.4vw),54px);font-family:Arial,sans-serif;background:#fafbff}
 .opt span{flex:none;width:1.7em;height:1.7em;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85em}
+.opt .mark{margin-left:auto;font-style:normal;font-weight:700;font-size:1.3em}
+.opt.good{background:#e3f6ea;border-color:var(--ok)}
+.opt.good span{background:var(--ok)} .opt.good .mark{color:var(--ok)}
+.opt.bad{background:#fde8e9;border-color:var(--no)}
+.opt.bad span{background:var(--no)} .opt.bad .mark{color:var(--no)}
+#result{font:700 clamp(20px,min(4.6vh,6vw),56px) Arial,sans-serif;margin-top:2.5vh;min-height:1.2em}
+#result.good{color:var(--ok)} #result.bad{color:var(--no)}
 @media (max-width:640px){#opts{grid-template-columns:1fr}}
 #timerWrap{position:absolute;right:3vw;top:2.5vh;width:min(13vh,22vw);height:min(13vh,22vw);visibility:hidden}
 #timerWrap.on{visibility:visible}
@@ -56,6 +63,7 @@ h1{margin:0;font-size:clamp(34px,min(8vh,10vw),96px);letter-spacing:.06em;color:
     <div id="count"></div>
     <div id="q"></div>
     <div id="opts"></div>
+    <div id="result"></div>
   </div>
 </div>
 <div id="overlay"></div>
@@ -106,6 +114,7 @@ const Q=[
 {q:"When Moses encountered God at the burning bush in the wilderness, what specific instruction did God give him before they spoke?",o:["Fall on your face","Remove your sandals","Cover your eyes","Put down your staff"]},
 {q:"When God originally called Jonah to go and preach to the city of Nineveh, to which distant port city did Jonah try to run away instead?",o:["Joppa","Tyre","Tarshish","Ephesus"]}
 ];
+const ANS=[0,3,1,0,3,1,1,2,1,0,2,1,2,1,2,3,0,2,2,0,2,1,2,1,2,1,0,2,1,2];
 const L=['A','B','C','D'],SECONDS=10,$=id=>document.getElementById(id);
 let idx=-1,left=SECONDS,timer=null,ac=null;
 
@@ -131,12 +140,12 @@ function draw(){
 }
 function stopTimer(){clearInterval(timer);timer=null}
 function hideOverlay(){$('overlay').classList.remove('show');$('overlay').innerHTML=''}
-function reset(){stopTimer();hideOverlay();left=SECONDS;draw();$('timerWrap').classList.remove('low')}
+function reset(){stopTimer();hideOverlay();$('result').textContent='';$('result').className='';left=SECONDS;draw();$('timerWrap').classList.remove('low')}
 
 function showQuestion(i){
   idx=i;reset();
   $('q').textContent=Q[i].q;
-  $('opts').innerHTML=Q[i].o.map((t,n)=>'<div class="opt"><span>'+L[n]+'</span>'+t+'</div>').join('');
+  $('opts').innerHTML=Q[i].o.map((t,n)=>'<div class="opt"><span>'+L[n]+'</span>'+t+'<em class="mark"></em></div>').join('');
   $('count').textContent='Question '+(i+1)+' of '+Q.length;
   $('timerWrap').classList.add('on');
   window.scrollTo(0,0);
@@ -161,7 +170,14 @@ const CROSS='<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#d9
 function verdict(ok){
   if(idx<0||idx>=Q.length)return;
   stopTimer();
-  $('overlay').innerHTML=ok?CHECK:CROSS;$('overlay').classList.add('show');
+  document.querySelectorAll('.opt').forEach((el,n)=>{
+    const good=n===ANS[idx];
+    el.classList.remove('good','bad');
+    el.classList.add(good?'good':'bad');
+    el.querySelector('.mark').textContent=good?'\u2713':'\u2717';
+  });
+  $('result').textContent=ok?'\u2713 Correct!':'\u2717 Wrong!';
+  $('result').className=ok?'good':'bad';
   (ok?sounds.correct:sounds.wrong)();
 }
 function toggleBar(){$('bar').classList.toggle('hide')}
