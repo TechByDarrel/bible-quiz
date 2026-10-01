@@ -499,7 +499,7 @@ function showWinner(){
 $('win').addEventListener('click',closeWin);
 function startTB(){
   if(TB()){
-    if(confirm('Leave the tie-breaker and go back to the main quiz?')){S.tb.on=false;save();showStart();renderBoard();toast('Back to the main quiz')}
+    if(twice('tb','Press K again within 5 seconds to leave the tie-breaker')){S.tb.on=false;save();showStart();renderBoard();toast('Back to the main quiz')}
     return;
   }
   if(!allDone()){toast('Finish the main quiz first');return}
@@ -542,17 +542,29 @@ function applyBig(){document.body.classList.toggle('big',!!S.big)}
 function toggleBig(){S.big=!S.big;save();applyBig();toast(S.big?'Big text on':'Big text off')}
 function toggleBar(){$('bar').classList.toggle('hide')}
 function fs(){document.fullscreenElement?document.exitFullscreen():(document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen())}
+const arms={};
+function twice(name,msg){
+  if(arms[name]){clearTimeout(arms[name]);arms[name]=null;return true}
+  toast(msg);
+  arms[name]=setTimeout(()=>{arms[name]=null;$('bReset').textContent='Reset scores';$('bReset').classList.remove('no')},5000);
+  return false;
+}
 function resetAll(){
-  if(!confirm('Reset all group picks, scores and the tie-breaker?'))return;
-  const sec=S.sec,big=S.big;S=fresh();S.sec=sec;S.big=big;hist=[];save();showStart();renderBoard();toast('Everything cleared');
+  if(!twice('reset','Tap Reset scores again within 5 seconds to clear everything')){
+    $('bReset').textContent='Tap again to confirm';$('bReset').classList.add('no');return;
+  }
+  $('bReset').textContent='Reset scores';$('bReset').classList.remove('no');
+  clearTimeout(winTimer);closeWin();$('board').classList.remove('show');stopTimer();
+  const sec=S.sec,big=S.big;S=fresh();S.sec=sec;S.big=big;hist=[];save();
+  showStart();renderBoard();draw();toast('Everything cleared. Scores and picks are reset');
 }
 
 // ---- Buttons / touch ----
 G.forEach(g=>{
   const b=document.createElement('button');b.className='gchip';b.dataset.g=g;b.textContent=g;
-  b.addEventListener('click',()=>{ctx();assign(g)});$('gsel').appendChild(b);
+  b.addEventListener('click',()=>{ctx();assign(g);b.blur()});$('gsel').appendChild(b);
 });
-const tap=(id,fn)=>$(id).addEventListener('click',()=>{ctx();fn()});
+const tap=(id,fn)=>$(id).addEventListener('click',()=>{ctx();fn();$(id).blur()});
 tap('bBack',back);tap('bNext',next);tap('bStart',startTimer);tap('bPause',pauseTimer);
 tap('bOk',()=>verdict(true));tap('bNo',()=>verdict(false));tap('bReveal',reveal);tap('bSkip',skip);
 tap('bBoard',toggleBoard);tap('bWin',showWinner);tap('bTB',startTB);tap('bOp',openOp);tap('bSave',saveResults);
