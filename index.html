@@ -394,7 +394,7 @@ function show(i){
   idx=i;stopTimer();
   const a=QS()[i];
   $('q').textContent=a[0];
-  $('opts').innerHTML=a[1].map((t,n)=>'<div class="opt" data-n="'+n+'"><span>'+L[n]+'</span>'+t+'<em class="mark"></em></div>').join('');
+  $('opts').innerHTML=TB()?'':a[1].map((t,n)=>'<div class="opt" data-n="'+n+'"><span>'+L[n]+'</span>'+t+'<em class="mark"></em></div>').join('');
   clearMarks();left=S.sec;draw();label();chips();restoreResult();welcome();
   $('timerWrap').classList.add('on');$('board').classList.remove('show');window.scrollTo(0,0);sendOp();
 }
@@ -460,7 +460,7 @@ function paint(ok){
     if(c){el.classList.add(c);el.querySelector('.mark').textContent=c==='good'?'\u2713':'\u2717'}
     if(pick===n){const g=OWN()[idx];el.classList.add('chosen');el.querySelector('.mark').textContent=(n===ans?'\u2713':'\u2717')+(g?' Group '+g:'')}
   });
-  $('result').textContent=ok?'\u2713 Correct!':'\u2717 Wrong!';
+  $('result').textContent=(ok?'\u2713 Correct!':'\u2717 Wrong!')+(TB()?'  Answer: '+QS()[idx][1][ans]:'');
   $('result').className=ok?'good':'bad';
 }
 function verdict(ok){
@@ -496,6 +496,7 @@ function reveal(){
   if(!inQ())return;
   if(RES()[idx]===true||RES()[idx]===false){toast('Already marked');return}
   stopTimer();judged=true;
+  if(TB()){$('result').textContent='Answer: '+QS()[idx][1][QS()[idx][2]];$('result').className='good';return}
   document.querySelectorAll('.opt').forEach((el,n)=>{
     el.classList.remove('good','bad','sel');el.querySelector('.mark').textContent='';
     if(n===QS()[idx][2]){el.classList.add('good');el.querySelector('.mark').textContent='\u2713'}
