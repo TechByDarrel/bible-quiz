@@ -29,6 +29,8 @@ h1{margin:0;font-size:clamp(30px,min(7vh,9vw),84px);letter-spacing:.06em;color:v
 .opt{display:flex;align-items:center;gap:14px;text-align:left;border:3px solid #d9dcec;border-radius:14px;padding:1.6vh 1.6vw;font-size:clamp(18px,min(4vh,4.4vw),54px);font-family:Arial,sans-serif;background:#fafbff;cursor:pointer}
 .opt span{flex:none;width:1.7em;height:1.7em;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85em}
 .opt .mark{margin-left:auto;font-style:normal;font-weight:700;font-size:1.3em}
+.opt.chosen{box-shadow:0 0 0 4px rgba(35,42,92,.3)}
+.opt.chosen .mark{font-size:.8em;white-space:nowrap}
 .opt.sel{border-color:var(--navy);box-shadow:0 0 0 4px rgba(35,42,92,.22)}
 .opt.good{background:#e3f6ea;border-color:var(--ok)} .opt.good span{background:var(--ok)} .opt.good .mark{color:var(--ok)}
 .opt.bad{background:#fde8e9;border-color:var(--no)} .opt.bad span{background:var(--no)} .opt.bad .mark{color:var(--no)}
@@ -242,13 +244,16 @@ const COL={A:'#2b6cb0',B:'#c05621',C:'#0f8b8d',D:'#805ad5',E:'#d53f8c'};
 const $=id=>document.getElementById(id);
 
 // Saved state in this browser: group + result per question, tie-breaker, timer length
-function fresh(){return{own:Array(Q.length).fill(null),res:Array(Q.length).fill(null),sec:10,
-  tb:{on:false,groups:[],out:[],win:null,own:Array(QT.length).fill(null),res:Array(QT.length).fill(null)}}}
+function fresh(){return{own:Array(Q.length).fill(null),res:Array(Q.length).fill(null),pk:Array(Q.length).fill(null),sec:10,
+  tb:{on:false,groups:[],out:[],win:null,own:Array(QT.length).fill(null),res:Array(QT.length).fill(null),pk:Array(QT.length).fill(null)}}}
 let S=fresh();
 try{const t=JSON.parse(localStorage.getItem('bq4'));if(t&&t.own&&t.own.length===Q.length&&t.tb)S=t}catch(e){}
+function fixPk(){if(!S.pk)S.pk=Array(Q.length).fill(null);if(!S.tb.pk)S.tb.pk=Array(QT.length).fill(null)}
+fixPk();
 function save(){try{localStorage.setItem('bq4',JSON.stringify(S))}catch(e){}}
 
 let hist=[],winTimer=null,idx=-1,left=S.sec,timer=null,paused=false,pick=null,judged=false,ac=null,raf=null,tt=null,opw=null;
+const PK=()=>TB()?S.tb.pk:S.pk;
 const TB=()=>S.tb.on,QS=()=>TB()?QT:Q,OWN=()=>TB()?S.tb.own:S.own,RES=()=>TB()?S.tb.res:S.res;
 const inQ=()=>idx>=0&&idx<QS().length;
 const picked=g=>S.own.filter(o=>o===g).length;
@@ -284,10 +289,10 @@ function draw(){
 function stopTimer(){clearInterval(timer);timer=null;paused=false}
 function tick(){left--;draw();if(left>0&&left<=3)sounds.tick();if(left<=0){stopTimer();draw();sounds.timeup()}}
 function clearMarks(){
-  document.querySelectorAll('.opt').forEach(el=>{el.classList.remove('good','bad','sel');el.querySelector('.mark').textContent=''});
+  document.querySelectorAll('.opt').forEach(el=>{el.classList.remove('good','bad','sel','chosen');el.querySelector('.mark').textContent=''});
   $('result').textContent='';$('result').className='';pick=null;judged=false;
 }
-function startTimer(){if(!inQ())return;stopTimer();clearMarks();left=S.sec;draw();sounds.start();timer=setInterval(tick,1000)}
+function startTimer(){if(!inQ())return;if(RES()[idx]===true||RES()[idx]===false){toast('This question has already been answered');return}stopTimer();clearMarks();left=S.sec;draw();sounds.start();timer=setInterval(tick,1000)}
 function pauseTimer(){
   if(timer!==null){clearInterval(timer);timer=null;paused=true;draw()}
   else if(paused){paused=false;timer=setInterval(tick,1000);draw()}
@@ -323,12 +328,17 @@ function label(){
   const o=OWN()[idx];
   $('count').innerHTML=(o?'<b style="background:'+COL[o]+'">Group '+o+'</b>':'')+(TB()?'Tie-breaker ':'Question ')+(idx+1)+' of '+QS().length;
 }
+function restoreResult(){
+  const r=RES()[idx];
+  if(r===true||r===false){pick=PK()[idx];paint(r)}
+  else if(r==='skip'){judged=true;$('result').textContent='Skipped'}
+}
 function show(i){
   idx=i;stopTimer();
   const a=QS()[i];
   $('q').textContent=a[0];
   $('opts').innerHTML=a[1].map((t,n)=>'<div class="opt" data-n="'+n+'"><span>'+L[n]+'</span>'+t+'<em class="mark"></em></div>').join('');
-  clearMarks();left=S.sec;draw();label();chips();
+  clearMarks();left=S.sec;draw();label();chips();restoreResult();
   $('timerWrap').classList.add('on');$('board').classList.remove('show');window.scrollTo(0,0);sendOp();
 }
 function showStart(){
@@ -364,10 +374,11 @@ function assign(g){
 function paint(ok){
   const ans=QS()[idx][2];judged=true;
   document.querySelectorAll('.opt').forEach((el,n)=>{
-    el.classList.remove('good','bad','sel');
+    el.classList.remove('good','bad','sel','chosen');
     let c='';
     if(n===ans)c='good';else if(pick===null||n===pick)c='bad';
     if(c){el.classList.add(c);el.querySelector('.mark').textContent=c==='good'?'\u2713':'\u2717'}
+    if(pick===n){const g=OWN()[idx];el.classList.add('chosen');el.querySelector('.mark').textContent=(n===ans?'\u2713':'\u2717')+(g?' Group '+g:'')}
   });
   $('result').textContent=ok?'\u2713 Correct!':'\u2717 Wrong!';
   $('result').className=ok?'good':'bad';
@@ -378,7 +389,8 @@ function verdict(ok){
   if(!g){toast('Choose the group (A to E) first');return}
   if(TB())return tbVerdict(ok,g);
   if(wrongs(g,idx)>=MAXWRONG){toast('Group '+g+' is already disqualified');return}
-  pushUndo();stopTimer();paint(ok);
+  if(S.res[idx]===true||S.res[idx]===false){toast('Already marked. Press Z to undo it first');return}
+  pushUndo();stopTimer();PK()[idx]=pick;paint(ok);
   S.res[idx]=ok;save();chips();renderBoard();
   (ok?sounds.correct:sounds.wrong)();
   if(!ok&&wrongs(g)>=MAXWRONG)setTimeout(()=>toast('Group '+g+' has '+MAXWRONG+' wrong answers: DISQUALIFIED'),900);
@@ -389,7 +401,7 @@ function tbVerdict(ok,g){
   if(t.win){toast('The tie-breaker is finished: Group '+t.win+' won');return}
   if(!allowed(g)){toast('Group '+g+' is not in the tie-breaker');return}
   if(t.res[idx]!==null){toast('This question is already marked');return}
-  pushUndo();stopTimer();paint(ok);t.res[idx]=ok;
+  pushUndo();stopTimer();PK()[idx]=pick;paint(ok);t.res[idx]=ok;
   if(ok){t.win=g;sounds.correct()}
   else{
     t.out.push(g);sounds.wrong();
@@ -402,6 +414,7 @@ function tbVerdict(ok,g){
 }
 function reveal(){
   if(!inQ())return;
+  if(RES()[idx]===true||RES()[idx]===false){toast('Already marked');return}
   stopTimer();judged=true;
   document.querySelectorAll('.opt').forEach((el,n)=>{
     el.classList.remove('good','bad','sel');el.querySelector('.mark').textContent='';
@@ -415,17 +428,18 @@ function skip(){
   if(allDone())winTimer=setTimeout(showWinner,1500);
 }
 $('opts').addEventListener('click',e=>{
-  const el=e.target.closest('.opt');if(!el||judged)return;
+  const el=e.target.closest('.opt');if(!el)return;
+  if(judged){if(RES()[idx]!==null)toast('This question is already marked. Options are locked');return}
   ctx();pick=+el.dataset.n;
   document.querySelectorAll('.opt').forEach(x=>x.classList.toggle('sel',x===el));
 });
 
 // ---- Undo last result ----
-function pushUndo(){hist.push({i:idx,s:JSON.stringify({own:S.own,res:S.res,tb:S.tb})});if(hist.length>25)hist.shift()}
+function pushUndo(){hist.push({i:idx,s:JSON.stringify({own:S.own,res:S.res,pk:S.pk,tb:S.tb})});if(hist.length>25)hist.shift()}
 function undo(){
   const h=hist.pop();if(!h){toast('Nothing to undo');return}
   clearTimeout(winTimer);
-  const o=JSON.parse(h.s);S.own=o.own;S.res=o.res;S.tb=o.tb;save();closeWin();
+  const o=JSON.parse(h.s);S.own=o.own;S.res=o.res;S.pk=o.pk||S.pk;S.tb=o.tb;fixPk();save();closeWin();
   if(h.i>=0&&h.i<QS().length)show(h.i);else showStart();
   renderBoard();chips();toast('Last result undone');
 }
@@ -491,7 +505,7 @@ function startTB(){
   if(!allDone()){toast('Finish the main quiz first');return}
   const w=winners();
   if(w.length<2){toast('There is no tie to break');return}
-  S.tb={on:true,groups:w.map(x=>x.g),out:[],win:null,own:Array(QT.length).fill(null),res:Array(QT.length).fill(null)};
+  S.tb={on:true,groups:w.map(x=>x.g),out:[],win:null,own:Array(QT.length).fill(null),res:Array(QT.length).fill(null),pk:Array(QT.length).fill(null)};
   save();closeWin();$('board').classList.remove('show');show(0);renderBoard();
   toast('Tie-breaker: Groups '+S.tb.groups.join(' and ')+'. First correct answer wins, a wrong answer is out.');
 }
@@ -519,7 +533,7 @@ function restore(f){
     try{
       const t=JSON.parse(r.result);
       if(!t||!t.own||t.own.length!==Q.length||!t.res||!t.tb)throw 0;
-      S=t;if(!S.sec)S.sec=10;save();hist=[];applyBig();closeWin();showStart();renderBoard();$('sn').value=S.sec;left=S.sec;draw();toast('Backup restored');
+      S=t;if(!S.sec)S.sec=10;fixPk();save();hist=[];applyBig();closeWin();showStart();renderBoard();$('sn').value=S.sec;left=S.sec;draw();toast('Backup restored');
     }catch(e){toast('That file is not a valid backup')}
   };
   r.readAsText(f);
